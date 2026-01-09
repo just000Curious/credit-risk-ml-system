@@ -1,9 +1,89 @@
 import streamlit as st
-from prediction_helper import predict
-import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from datetime import datetime
+
+# --- SIMPLE PREDICT FUNCTION (to replace prediction_helper.py) ---
+def predict(age, income, loan_amount, loan_tenure_months, avg_dpd_per_delinquency,
+            delinquency_ratio, credit_utilization_ratio, num_open_accounts,
+            residence_type, loan_purpose, loan_type):
+    """Simple credit score calculator - NO EXTERNAL DEPENDENCIES"""
+    
+    # Base score calculation
+    base_score = 650
+    
+    # Age factor
+    if 25 <= age <= 35:
+        base_score += 30
+    elif 36 <= age <= 50:
+        base_score += 40
+    else:
+        base_score += 20
+    
+    # Income factor
+    if income > 2000000:
+        base_score += 50
+    elif income > 1000000:
+        base_score += 30
+    elif income > 500000:
+        base_score += 15
+    
+    # Loan-to-income penalty
+    lti_ratio = (loan_amount / income * 100) if income > 0 else 0
+    if lti_ratio > 50:
+        base_score -= 40
+    elif lti_ratio > 30:
+        base_score -= 20
+    
+    # Credit utilization penalty
+    if credit_utilization_ratio > 70:
+        base_score -= 40
+    elif credit_utilization_ratio > 50:
+        base_score -= 20
+    elif credit_utilization_ratio < 30:
+        base_score += 15
+    
+    # Delinquency penalty
+    if delinquency_ratio > 30:
+        base_score -= 40
+    elif delinquency_ratio > 15:
+        base_score -= 20
+    
+    # DPD penalty
+    if avg_dpd_per_delinquency > 60:
+        base_score -= 30
+    elif avg_dpd_per_delinquency > 30:
+        base_score -= 15
+    
+    # Residence bonus
+    if residence_type == "Owned":
+        base_score += 25
+    elif residence_type == "Mortgage":
+        base_score += 10
+    
+    # Loan purpose adjustment
+    if loan_purpose == "Home":
+        base_score += 20
+    elif loan_purpose == "Education":
+        base_score += 15
+    
+    # Ensure score is within range
+    credit_score = max(300, min(int(base_score), 850))
+    
+    # Calculate default probability
+    default_probability = max(0.01, min(0.99, (850 - credit_score) / 550 * 0.8))
+    
+    # Determine rating
+    if credit_score >= 750:
+        rating = "Excellent"
+    elif credit_score >= 650:
+        rating = "Good"
+    elif credit_score >= 550:
+        rating = "Fair"
+    else:
+        rating = "Poor"
+    
+    return default_probability, credit_score, rating
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -724,141 +804,132 @@ st.markdown("""
         font-weight: 800;
         font-size: 0.9rem;
     }
+    
+    /* === HTML GAUGE CHART === */
+    .gauge-container {
+        width: 100%;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .radar-container {
+        width: 100%;
+        height: 360px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 20px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- HELPER FUNCTIONS ---
-def create_score_gauge(score):
-    """Create a vibrant gauge chart for credit score visualization"""
+# --- SIMPLE HTML GAUGE FUNCTION (replaces plotly) ---
+def create_html_gauge(score):
+    """Create HTML gauge chart for credit score"""
     if score >= 750:
-        color = "#4338CA"  # Sapphire Blue
+        color = "#4338CA"
         risk_level = "EXCELLENT"
+        percentage = 88
     elif score >= 650:
-        color = "#10B981"  # Emerald Green
+        color = "#10B981"
         risk_level = "GOOD"
+        percentage = 65
     else:
-        color = "#EF4444"  # Ruby Red
+        color = "#EF4444"
         risk_level = "NEEDS IMPROVEMENT"
+        percentage = 35
+    
+    return f'''
+    <div class="gauge-container">
+        <div style="text-align: center; width: 100%;">
+            <div style="font-size: 1.1rem; color: #6B7280; margin-bottom: 10px; font-weight: 600;">CREDIT SCORE</div>
+            <div style="font-size: 0.9rem; color: {color}; font-weight: 700; margin-bottom: 20px; padding: 8px 16px; background: {color}15; border-radius: 20px; display: inline-block;">{risk_level}</div>
+            <div style="font-size: 4.5rem; font-weight: 800; color: {color}; margin: 20px 0; line-height: 1;">{score}</div>
+            
+            <div style="width: 90%; max-width: 500px; margin: 30px auto;">
+                <div style="width: 100%; height: 24px; background: linear-gradient(90deg, 
+                    #EF4444 0%, 
+                    #F59E0B 25%, 
+                    #10B981 50%, 
+                    #3B82F6 75%, 
+                    #4338CA 100%); 
+                    border-radius: 12px; 
+                    margin-bottom: 10px;"></div>
+                
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">300</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">400</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">500</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">600</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">700</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">800</span>
+                    <span style="font-size: 0.85rem; color: #6B7280; font-weight: 600;">850</span>
+                </div>
+                
+                <div style="margin-top: 25px; position: relative;">
+                    <div style="position: absolute; left: {percentage}%; transform: translateX(-50%); bottom: 0;">
+                        <div style="width: 2px; height: 30px; background: {color};"></div>
+                        <div style="width: 20px; height: 20px; background: {color}; border-radius: 50%; margin-top: -10px; margin-left: -9px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    '''
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=score,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={
-            'text': f"<span style='font-size:0.9em;color:#6B7280'>CREDIT SCORE</span><br>" +
-                    f"<span style='font-size:0.7em;color:{color};font-weight:700'>{risk_level}</span>",
-            'font': {'size': 20, 'family': 'Outfit'}
-        },
-        number={
-            'font': {'size': 52, 'family': 'Outfit', 'color': color, 'weight': 'bold'},
-            'suffix': " "
-        },
-        gauge={
-            'axis': {
-                'range': [300, 850],
-                'tickwidth': 2,
-                'tickcolor': "#CBD5E1",
-                'tickfont': {'size': 11, 'color': '#6B7280', 'family': 'Inter'},
-                'tickmode': 'array',
-                'tickvals': [300, 400, 500, 600, 700, 800, 850],
-                'ticktext': ['300', '400', '500', '600', '700', '800', '850']
-            },
-            'bar': {'color': color, 'thickness': 0.4},
-            'bgcolor': "rgba(255, 255, 255, 0.8)",
-            'borderwidth': 3,
-            'bordercolor': "rgba(219, 234, 254, 0.5)",
-            'steps': [
-                {'range': [300, 650], 'color': 'rgba(254, 226, 226, 0.6)'},
-                {'range': [650, 750], 'color': 'rgba(254, 243, 199, 0.6)'},
-                {'range': [750, 850], 'color': 'rgba(219, 234, 254, 0.6)'}
-            ],
-        }
-    ))
-
-    fig.update_layout(
-        height=300,
-        margin=dict(l=60, r=60, t=80, b=60),
-        paper_bgcolor='rgba(0,0,0,0)',
-        font={'family': 'Inter'},
-        plot_bgcolor='rgba(0,0,0,0)'
-    )
-
-    return fig
-
-
-def create_radar_chart(utilization, delinquency, loan_to_income, age, income_score):
-    """Create a vibrant radar chart with violet-to-blue gradient"""
-    categories = ['Credit Utilization', 'Payment History', 'Loan-to-Income', 'Age Factor', 'Income Level']
-
-    # Normalize values to 0-100 scale with minimum 10
+# --- SIMPLE RADAR CHART FUNCTION (replaces plotly) ---
+def create_simple_radar_chart(utilization, delinquency, loan_to_income, age, income_score):
+    """Create HTML radar chart"""
+    # Calculate scores
     util_score = max(10, 100 - utilization * 0.8)
     delinq_score = max(10, 100 - delinquency * 1.2)
     lti_score = max(10, 100 - min(loan_to_income * 0.8, 90))
     age_score = max(10, min(age * 1.5, 90)) if age < 65 else max(10, 100 - (age - 65) * 2)
     inc_score = max(10, min(income_score, 90))
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=[util_score, delinq_score, lti_score, age_score, inc_score],
-        theta=categories,
-        fill='toself',
-        line_color='#7C3AED',
-        fillcolor='rgba(139, 92, 246, 0.25)',
-        name='Client Profile',
-        hovertemplate='<b>%{theta}</b><br>Score: %{r:.0f}/100<extra></extra>',
-        line=dict(width=3, color='#7C3AED')
-    ))
-
-    # Add benchmark with vibrant gradient
-    fig.add_trace(go.Scatterpolar(
-        r=[80, 80, 80, 80, 80],
-        theta=categories,
-        fill='toself',
-        line_color='#06B6D4',
-        fillcolor='rgba(6, 182, 212, 0.15)',
-        name='Industry Benchmark',
-        line=dict(width=2, dash='dash', color='#06B6D4'),
-        hovertemplate='Benchmark: 80/100<extra></extra>'
-    ))
-
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 100],
-                gridcolor='rgba(203, 213, 225, 0.5)',
-                tickfont=dict(color='#6B7280', size=12, family='Inter'),
-                tickvals=[0, 20, 40, 60, 80, 100],
-                ticktext=['0', '20', '40', '60', '80', '100'],
-                linecolor='rgba(203, 213, 225, 0.8)'
-            ),
-            angularaxis=dict(
-                gridcolor='rgba(203, 213, 225, 0.5)',
-                linecolor='rgba(203, 213, 225, 0.8)',
-                tickfont=dict(color='#1E1B4B', size=13, family='Outfit')
-            ),
-            bgcolor='rgba(255, 255, 255, 0.2)',
-            radialaxis_angle=45
-        ),
-        showlegend=True,
-        legend=dict(
-            x=0.85,
-            y=1.15,
-            bgcolor='rgba(255, 255, 255, 0.9)',
-            bordercolor='rgba(219, 234, 254, 0.5)',
-            borderwidth=2,
-            font=dict(size=13, color='#1E1B4B', family='Outfit'),
-            orientation='h'
-        ),
-        height=360,
-        margin=dict(l=80, r=80, t=60, b=60),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font={'family': 'Inter', 'color': '#1E1B4B'}
-    )
-
-    return fig, {
+    
+    scores = [util_score, delinq_score, lti_score, age_score, inc_score]
+    categories = ['Credit Utilization', 'Payment History', 'Loan-to-Income', 'Age Factor', 'Income Level']
+    
+    # Create radar chart HTML
+    radar_html = '''
+    <div class="radar-container">
+        <div style="width: 100%; height: 100%; position: relative;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; height: 280px; border-radius: 50%; border: 2px solid rgba(203, 213, 225, 0.5);"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 220px; border-radius: 50%; border: 2px solid rgba(203, 213, 225, 0.4);"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; border-radius: 50%; border: 2px solid rgba(203, 213, 225, 0.3);"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(203, 213, 225, 0.2);"></div>
+    '''
+    
+    # Add data points
+    for i, (score, category) in enumerate(zip(scores, categories)):
+        angle = (i * 72 - 90) * 3.14159 / 180
+        radius = (score / 100) * 140  # 140 is max radius
+        
+        x = 50 + radius * np.cos(angle) / 140 * 100
+        y = 50 + radius * np.sin(angle) / 140 * 100
+        
+        # Add point
+        radar_html += f'''
+        <div style="position: absolute; top: {y}%; left: {x}%; transform: translate(-50%, -50%);">
+            <div style="width: 12px; height: 12px; background: #7C3AED; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);"></div>
+            <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.8rem; color: #1E1B4B; font-weight: 600; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 10px; border: 1px solid rgba(203,213,225,0.3);">
+                {category}<br><span style="color: #7C3AED; font-weight: 800;">{int(score)}/100</span>
+            </div>
+        </div>
+        '''
+    
+    # Close container
+    radar_html += '''
+        </div>
+    </div>
+    '''
+    
+    return radar_html, {
         'utilization': util_score,
         'delinquency': delinq_score,
         'loan_to_income': lti_score,
@@ -866,9 +937,9 @@ def create_radar_chart(utilization, delinquency, loan_to_income, age, income_sco
         'income': inc_score
     }
 
-
+# --- HELPER FUNCTIONS ---
 def calculate_potential_score(current_score, changes):
-    """Calculate potential score improvement based on scenario changes"""
+    """Calculate potential score improvement"""
     potential = current_score
 
     # Income improvement
@@ -934,7 +1005,6 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-    # This is the correct way to display the subtitle using st.markdown
     st.markdown(
         '<div style="font-size: 1.1rem; color: #6B7280; font-weight: 600; margin-top: 8px; text-align: center;">AI-Powered Credit Assessment System</div>',
         unsafe_allow_html=True)
@@ -1086,7 +1156,7 @@ with st.container():
             num_open_accounts=2,
             residence_type=residence_type,
             loan_purpose="Home",
-            loan_type="Unsecured"  # Note: Changed from "Secured"
+            loan_type="Unsecured"
         )
 
         # Store in session state
@@ -1192,8 +1262,7 @@ with st.container():
 
             # Risk Meter
             risk_percentage = min(results['probability'] * 100, 100)
-            risk_color = "#4338CA" if results['probability'] < 0.1 else "#10B981" if results[
-                                                                                         'probability'] < 0.25 else "#EF4444"
+            risk_color = "#4338CA" if results['probability'] < 0.1 else "#10B981" if results['probability'] < 0.25 else "#EF4444"
 
             # Calculate risk level
             risk_level_index = int(results['probability'] > 0.1) + int(results['probability'] > 0.25)
@@ -1224,10 +1293,8 @@ with st.container():
             metric_cols = st.columns(3)
 
             with metric_cols[0]:
-                lti_status = "Optimal" if results['loan_to_income'] < 30 else "Moderate" if results[
-                                                                                                'loan_to_income'] < 50 else "High"
-                lti_color = "#4338CA" if results['loan_to_income'] < 30 else "#6366F1" if results[
-                                                                                              'loan_to_income'] < 50 else "#7C3AED"
+                lti_status = "Optimal" if results['loan_to_income'] < 30 else "Moderate" if results['loan_to_income'] < 50 else "High"
+                lti_color = "#4338CA" if results['loan_to_income'] < 30 else "#6366F1" if results['loan_to_income'] < 50 else "#7C3AED"
                 st.markdown(f"""
                 <div class="metric-card lti">
                     <div class="metric-label">Loan-to-Income Ratio</div>
@@ -1237,10 +1304,8 @@ with st.container():
                 """, unsafe_allow_html=True)
 
             with metric_cols[1]:
-                dti_status = "Affordable" if results['debt_to_income'] < 20 else "Manageable" if results[
-                                                                                                     'debt_to_income'] < 35 else "Elevated"
-                dti_color = "#7C3AED" if results['debt_to_income'] < 20 else "#8B5CF6" if results[
-                                                                                              'debt_to_income'] < 35 else "#A78BFA"
+                dti_status = "Affordable" if results['debt_to_income'] < 20 else "Manageable" if results['debt_to_income'] < 35 else "Elevated"
+                dti_color = "#7C3AED" if results['debt_to_income'] < 20 else "#8B5CF6" if results['debt_to_income'] < 35 else "#A78BFA"
                 st.markdown(f"""
                 <div class="metric-card dti">
                     <div class="metric-label">Debt Service Ratio</div>
@@ -1251,8 +1316,7 @@ with st.container():
 
             with metric_cols[2]:
                 emi_formatted = f"₹{results['monthly_emi']:,.0f}"
-                emi_color = "#06B6D4" if results['monthly_emi'] < 50000 else "#0891B2" if results[
-                                                                                              'monthly_emi'] < 100000 else "#0E7490"
+                emi_color = "#06B6D4" if results['monthly_emi'] < 50000 else "#0891B2" if results['monthly_emi'] < 100000 else "#0E7490"
                 st.markdown(f"""
                 <div class="metric-card emi">
                     <div class="metric-label">Monthly EMI</div>
@@ -1262,7 +1326,7 @@ with st.container():
                 """, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-            # VIBRANT RADAR CHART
+            # HTML RADAR CHART
             st.markdown("<div class='results-section'>", unsafe_allow_html=True)
             st.markdown(
                 "<h4 style='color: #1E1B4B !important; margin-bottom: 24px; font-size: 1.4rem;'>📊 Risk Factor Analysis</h4>",
@@ -1272,7 +1336,7 @@ with st.container():
             income_score = max(10, min(annual_income / 5000000 * 100, 90))
 
             # Create vibrant radar chart
-            radar_fig, radar_scores = create_radar_chart(
+            radar_html, radar_scores = create_simple_radar_chart(
                 credit_utilization,
                 delinquency_ratio,
                 results['loan_to_income'],
@@ -1280,7 +1344,7 @@ with st.container():
                 income_score
             )
 
-            st.plotly_chart(radar_fig, use_container_width=True)
+            st.markdown(radar_html, unsafe_allow_html=True)
 
             # Radar insights
             st.markdown(
@@ -1450,7 +1514,7 @@ with st.container():
                 </div>
                 """, unsafe_allow_html=True)
 
-            # IMPROVEMENT METER - Key Persuasive Element
+            # IMPROVEMENT METER
             improvement_percentage = (score_improvement / 850) * 100
             st.markdown(f"""
             <div style='margin: 32px 0; padding: 28px; background: linear-gradient(135deg, rgba(255, 251, 235, 0.6), rgba(255, 255, 255, 0.8)); border-radius: 24px; border: 2px solid #FDE68A; text-align: center; box-shadow: 0 20px 60px -30px rgba(245, 158, 11, 0.2);'>
@@ -1469,13 +1533,11 @@ with st.container():
             col_imp1, col_imp2, col_imp3 = st.columns(3)
             with col_imp1:
                 st.metric("Income Impact", f"+{impacts['income_impact']:.0f} pts",
-                          delta="Significant" if impacts['income_impact'] > 20 else "Moderate" if impacts[
-                                                                                                      'income_impact'] > 10 else "Minimal",
+                          delta="Significant" if impacts['income_impact'] > 20 else "Moderate" if impacts['income_impact'] > 10 else "Minimal",
                           delta_color="normal")
             with col_imp2:
                 st.metric("Utilization Impact", f"+{impacts['util_impact']:.0f} pts",
-                          delta="High Impact" if impacts['util_impact'] > 30 else "Moderate" if impacts[
-                                                                                                    'util_impact'] > 15 else "Low",
+                          delta="High Impact" if impacts['util_impact'] > 30 else "Moderate" if impacts['util_impact'] > 15 else "Low",
                           delta_color="normal")
             with col_imp3:
                 st.metric("Loan Terms", f"{impacts['loan_impact']:.0f} pts",
