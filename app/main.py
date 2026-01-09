@@ -1076,9 +1076,17 @@ with st.container():
 
         # Get prediction
         prob, score, rating = predict(
-            age, annual_income, loan_amount, loan_tenure,
-            avg_dpd, delinquency_ratio, credit_utilization,
-            2, residence_type, "Home", "Secured"
+            age=age,
+            income=annual_income,
+            loan_amount=loan_amount,
+            loan_tenure_months=loan_tenure,
+            avg_dpd_per_delinquency=avg_dpd,
+            delinquency_ratio=delinquency_ratio,
+            credit_utilization_ratio=credit_utilization,
+            num_open_accounts=2,
+            residence_type=residence_type,
+            loan_purpose="Home",
+            loan_type="Unsecured"  # Note: Changed from "Secured"
         )
 
         # Store in session state
