@@ -102,11 +102,11 @@ def predict(age, income, loan_amount, loan_tenure_months, avg_dpd_per_delinquenc
     elif loan_purpose == "Personal":
         base_score += 10
     
-    # Loan type adjustment
+    # Loan type adjustment - UPDATED for better scores
     if loan_type == "Secured":
-        base_score += 15
+        base_score += 20
     elif loan_type == "Unsecured":
-        base_score -= 10
+        base_score += 5  # Changed from -10 to +5
     
     # Ensure score is within range
     credit_score = max(300, min(int(base_score), 850))
