@@ -1074,27 +1074,12 @@ with st.container():
         monthly_emi = loan_amount / loan_tenure if loan_tenure > 0 else 0
         debt_to_income = (monthly_emi * 12 / annual_income * 100) if annual_income > 0 else 0
 
-        # Get prediction - UPDATED FUNCTION CALL
-        try:
-            prob, score, rating = predict(
-                age=age,
-                income=annual_income,
-                loan_amount=loan_amount,
-                loan_tenure_months=loan_tenure,
-                avg_dpd_per_delinquency=avg_dpd,
-                delinquency_ratio=delinquency_ratio,
-                credit_utilization_ratio=credit_utilization,
-                num_open_accounts=2,
-                residence_type=residence_type,
-                loan_purpose="Home",
-                loan_type="Unsecured"
-            )
-        except Exception as e:
-            # Fallback prediction if helper fails
-            st.error(f"Prediction error: {str(e)}. Using fallback calculation.")
-            score = min(850, max(300, 650 + (age - 30) * 2 + (annual_income - 1000000) / 50000))
-            prob = max(0.01, min(0.99, (850 - score) / 550))
-            rating = "Excellent" if score >= 750 else "Good" if score >= 650 else "Fair" if score >= 550 else "Poor"
+        # Get prediction
+        prob, score, rating = predict(
+            age, annual_income, loan_amount, loan_tenure,
+            avg_dpd, delinquency_ratio, credit_utilization,
+            2, residence_type, "Home", "Secured"
+        )
 
         # Store in session state
         st.session_state.prediction_results = {
