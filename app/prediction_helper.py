@@ -1,129 +1,100 @@
+import joblib
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+# Path to the saved model and its components
+MODEL_PATH = 'artifacts/model_data.joblib'
+
+# Load the model and its components
+model_data = joblib.load(MODEL_PATH)
+model = model_data['model']
+scaler = model_data['scaler']
+features = model_data['features']
+cols_to_scale = model_data['cols_to_scale']
+
+
+def prepare_input(age, income, loan_amount, loan_tenure_months, avg_dpd_per_delinquency,
+                    delinquency_ratio, credit_utilization_ratio, num_open_accounts, residence_type,
+                    loan_purpose, loan_type):
+    # Create a dictionary with input values and dummy values for missing features
+    input_data = {
+        'age': age,
+        'loan_tenure_months': loan_tenure_months,
+        'number_of_open_accounts': num_open_accounts,
+        'credit_utilization_ratio': credit_utilization_ratio,
+        'loan_to_income': loan_amount / income if income > 0 else 0,
+        'delinquency_ratio': delinquency_ratio,
+        'avg_dpd_per_delinquency': avg_dpd_per_delinquency,
+        'residence_type_Owned': 1 if residence_type == 'Owned' else 0,
+        'residence_type_Rented': 1 if residence_type == 'Rented' else 0,
+        'loan_purpose_Education': 1 if loan_purpose == 'Education' else 0,
+        'loan_purpose_Home': 1 if loan_purpose == 'Home' else 0,
+        'loan_purpose_Personal': 1 if loan_purpose == 'Personal' else 0,
+        'loan_type_Unsecured': 1 if loan_type == 'Unsecured' else 0,
+        # additional dummy fields just for scaling purpose
+        'number_of_dependants': 1,  # Dummy value
+        'years_at_current_address': 1,  # Dummy value
+        'zipcode': 1,  # Dummy value
+        'sanction_amount': 1,  # Dummy value
+        'processing_fee': 1,  # Dummy value
+        'gst': 1,  # Dummy value
+        'net_disbursement': 1,  # Computed dummy value
+        'principal_outstanding': 1,  # Dummy value
+        'bank_balance_at_application': 1,  # Dummy value
+        'number_of_closed_accounts': 1,  # Dummy value
+        'enquiry_count': 1  # Dummy value
+    }
+
+    # Ensure all columns for features and cols_to_scale are present
+    df = pd.DataFrame([input_data])
+
+    # Ensure only required columns for scaling are scaled
+    df[cols_to_scale] = scaler.transform(df[cols_to_scale])
+
+    # Ensure the DataFrame contains only the features expected by the model
+    df = df[features]
+
+    return df
+
 
 def predict(age, income, loan_amount, loan_tenure_months, avg_dpd_per_delinquency,
             delinquency_ratio, credit_utilization_ratio, num_open_accounts,
             residence_type, loan_purpose, loan_type):
-    """
-    Predict credit score and default probability
-    """
-    # Base score calculation
-    base_score = 650
-    
-    # Age factor
-    if age < 25:
-        base_score -= 20
-    elif 25 <= age <= 35:
-        base_score += 30
-    elif 36 <= age <= 50:
-        base_score += 40
-    elif age > 50:
-        base_score += 25
-    else:
-        base_score += 20
-    
-    # Income factor (in lakhs)
-    income_lakhs = income / 100000
-    if income_lakhs > 20:
-        base_score += 50
-    elif income_lakhs > 10:
-        base_score += 30
-    elif income_lakhs > 5:
-        base_score += 15
-    else:
-        base_score += 5
-    
-    # Loan-to-income penalty
-    lti_ratio = (loan_amount / income * 100) if income > 0 else 0
-    if lti_ratio > 50:
-        base_score -= 40
-    elif lti_ratio > 30:
-        base_score -= 20
-    elif lti_ratio > 20:
-        base_score -= 10
-    elif lti_ratio < 10:
-        base_score += 10
-    
-    # Credit utilization penalty
-    if credit_utilization_ratio > 80:
-        base_score -= 40
-    elif credit_utilization_ratio > 60:
-        base_score -= 30
-    elif credit_utilization_ratio > 40:
-        base_score -= 15
-    elif credit_utilization_ratio < 20:
-        base_score += 15
-    elif credit_utilization_ratio < 30:
-        base_score += 10
-    
-    # Delinquency penalty
-    if delinquency_ratio > 30:
-        base_score -= 40
-    elif delinquency_ratio > 20:
-        base_score -= 25
-    elif delinquency_ratio > 10:
-        base_score -= 15
-    elif delinquency_ratio > 5:
-        base_score -= 5
-    
-    # DPD penalty
-    if avg_dpd_per_delinquency > 90:
-        base_score -= 40
-    elif avg_dpd_per_delinquency > 60:
-        base_score -= 30
-    elif avg_dpd_per_delinquency > 30:
-        base_score -= 15
-    elif avg_dpd_per_delinquency > 7:
-        base_score -= 5
-    
-    # Number of accounts
-    if num_open_accounts > 10:
-        base_score -= 10
-    elif num_open_accounts > 5:
-        base_score -= 5
-    elif num_open_accounts > 0:
-        base_score += 5
-    
-    # Residence bonus
-    if residence_type == "Owned":
-        base_score += 30
-    elif residence_type == "Mortgage":
-        base_score += 15
-    elif residence_type == "Rented":
-        base_score += 5
-    else:  # With Family
-        base_score += 0
-    
-    # Loan purpose adjustment
-    if loan_purpose == "Home":
-        base_score += 25
-    elif loan_purpose == "Education":
-        base_score += 20
-    elif loan_purpose == "Personal":
-        base_score += 10
-    
-    # Loan type adjustment - UPDATED for better scores
-    if loan_type == "Secured":
-        base_score += 20
-    elif loan_type == "Unsecured":
-        base_score += 5  # Changed from -10 to +5
-    
-    # Ensure score is within range
-    credit_score = max(300, min(int(base_score), 850))
-    
-    # Calculate default probability
-    # Higher score = lower probability
-    score_ratio = (850 - credit_score) / 550  # 0 to 1
-    default_probability = max(0.01, min(0.99, score_ratio * 0.8))
-    
-    # Determine rating
-    if credit_score >= 750:
-        rating = "Excellent"
-    elif credit_score >= 650:
-        rating = "Good"
-    elif credit_score >= 550:
-        rating = "Fair"
-    else:
-        rating = "Poor"
-    
-    return default_probability, credit_score, rating
+    # Prepare input data
+    input_df = prepare_input(age, income, loan_amount, loan_tenure_months, avg_dpd_per_delinquency,
+                             delinquency_ratio, credit_utilization_ratio, num_open_accounts, residence_type,
+                             loan_purpose, loan_type)
+
+    probability, credit_score, rating = calculate_credit_score(input_df)
+
+    return probability, credit_score, rating
+
+
+def calculate_credit_score(input_df, base_score=300, scale_length=600):
+    x = np.dot(input_df.values, model.coef_.T) + model.intercept_
+
+    # Apply the logistic function to calculate the probability
+    default_probability = 1 / (1 + np.exp(-x))
+
+    non_default_probability = 1 - default_probability
+
+    # Convert the probability to a credit score, scaled to fit within 300 to 900
+    credit_score = base_score + non_default_probability.flatten() * scale_length
+
+    # Determine the rating category based on the credit score
+    def get_rating(score):
+        if 300 <= score < 500:
+            return 'Poor'
+        elif 500 <= score < 650:
+            return 'Average'
+        elif 650 <= score < 750:
+            return 'Good'
+        elif 750 <= score <= 900:
+            return 'Excellent'
+        else:
+            return 'Undefined'  # in case of any unexpected score
+
+    rating = get_rating(credit_score[0])
+
+    return default_probability.flatten()[0], int(credit_score[0]), rating
