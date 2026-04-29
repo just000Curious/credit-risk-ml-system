@@ -274,11 +274,19 @@ export default function App() {
           <NavItem icon="🧠" label="Model Intelligence" active={tab === 'model'} onClick={() => setTab('model')} />
         </nav>
         <div className="sidebar-footer">
-          <div className="sidebar-badge">
+          <div className="sidebar-badge" style={{ marginBottom: 12 }}>
             <span className="status-dot" />
             <div>
               <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--t1)' }}>API Connected</div>
               <div style={{ fontSize: 9.5, color: 'var(--t3)' }}>Model v2.1 · 99.1%</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--t3)', marginBottom: 3 }}>
+              Developed & Designed by
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--indigo-light)', textShadow: '0 0 8px var(--indigo-glow)' }}>
+              @abhishekbhosale
             </div>
           </div>
         </div>
