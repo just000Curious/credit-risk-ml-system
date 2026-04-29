@@ -50,7 +50,8 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      const { data } = await axios.post('http://localhost:8000/api/predict', form);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const { data } = await axios.post(`${API_URL}/api/predict`, form);
       onResult(data, form);
     } catch {
       setError('Cannot reach the API. Ensure FastAPI is running on port 8000.');
@@ -106,7 +107,7 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
   );
 }
 
-export function ResultsPage({ result, form, onBack }: { result: Result; form: any; onBack: () => void }) {
+export function ResultsPage({ result, onBack }: { result: Result; onBack: () => void }) {
   const prob = result.probability * 100;
   const lti = result.loan_to_income_ratio;
   const dti = result.debt_to_income_ratio;

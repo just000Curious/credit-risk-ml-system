@@ -315,7 +315,7 @@ export default function App() {
         <div className="page-content">
           {tab === 'dashboard' && <DashboardPage onGo={() => setTab('assessment')} />}
           {tab === 'assessment' && <AssessmentPage onResult={handleResult} />}
-          {tab === 'results' && result && <ResultsPage result={result} form={form} onBack={() => setTab('assessment')} />}
+          {tab === 'results' && result && <ResultsPage result={result} onBack={() => setTab('assessment')} />}
           {tab === 'scenario' && <ScenarioPage result={result} form={form} />}
           {tab === 'model' && <ModelPage />}
         </div>
