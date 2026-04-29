@@ -281,12 +281,17 @@ export default function App() {
               <div style={{ fontSize: 9.5, color: 'var(--t3)' }}>Model v2.1 · 99.1%</div>
             </div>
           </div>
-          <div style={{ textAlign: 'center', padding: '8px 0', borderTop: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--t3)', marginBottom: 3 }}>
-              Developed & Designed by
+          <div style={{ textAlign: 'center', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--t3)', marginBottom: 4 }}>
+              Designed & Developed by
             </div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--indigo-light)', textShadow: '0 0 8px var(--indigo-glow)' }}>
-              @abhishekbhosale
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.01em' }}>
+                Abhishek Bhosale
+              </span>
+              <span style={{ fontSize: 8, fontWeight: 800, color: 'var(--indigo-light)', padding: '2px 4px', background: 'var(--indigo-dim)', borderRadius: 4, border: '1px solid rgba(99,102,241,0.2)' }}>
+                TM
+              </span>
             </div>
           </div>
         </div>
