@@ -1,61 +1,92 @@
-# EliteCredit — Enterprise Credit Risk Intelligence Platform
+# EliteCredit — AI Credit Risk Intelligence Platform
 
-![EliteCredit Dashboard](screenshots/dark_mode.png)
+<div align="center">
 
-EliteCredit is a professional, full-stack machine learning platform designed for financial advisors. It replaces manual underwriting with a real-time, high-accuracy credit scoring engine, predicting default probabilities and generating RBI-calibrated credit scores (300–900). 
+![Dashboard Dark Mode](docs/screenshots/dashboard-dark.png)
 
-Designed to enterprise SaaS standards, it features a decoupled architecture with a high-performance **FastAPI** backend and a responsive, beautifully styled **React/Vite** frontend.
+**Real-time credit scoring engine powered by Machine Learning**
 
----
+[![Live System](https://img.shields.io/badge/Status-Live-10B981?style=for-the-badge&logo=vercel)](https://elitecredit.vercel.app)
+[![Accuracy](https://img.shields.io/badge/Accuracy-99.1%25-38BDF8?style=for-the-badge)](/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](/)
+[![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](/)
 
-## 🌟 Key Features
-
-- **Real-Time ML Inference**: Powered by a Logistic Regression model trained on 252,000+ samples, achieving **99.1% accuracy** and a 0.9875 AUC-ROC score.
-- **Enterprise UI/UX**: A modern, responsive React dashboard with an intuitive multi-step assessment wizard, detailed result visualization, and a built-in Dark/Light mode toggle.
-- **Scenario Planner**: Interactive "what-if" analysis allowing advisors to instantly simulate how changes in credit utilization or income impact the applicant's credit score.
-- **Actionable Insights**: Automatically classifies applicants into risk tiers (Elite, Standard, Development) and provides contextual advisor recommendations (e.g., "Fast-Track Processing", "Credit Rebuild Program").
-- **Sub-200ms Latency**: Inference and data validation optimized through FastAPI and Pydantic.
+</div>
 
 ---
 
-## 🏗️ System Architecture
+## 🎯 What is EliteCredit?
 
-EliteCredit follows a modern, decoupled full-stack architecture:
+EliteCredit is a **production-grade, full-stack machine learning platform** for credit risk assessment. It replaces manual underwriting with a real-time scoring engine that predicts default probabilities and generates **RBI-calibrated credit scores (300–900)** with **99.1% accuracy**.
 
-1. **Frontend (Client Layer)**: 
-   - **Stack**: React 18, Vite, TypeScript
-   - **Styling**: Tailwind CSS v4 (Custom Enterprise "Slate & Indigo" Design System)
-   - **Features**: State management, interactive routing, Axios for API communication.
-   
-2. **Backend (API Layer)**: 
-   - **Stack**: FastAPI, Uvicorn, Python 3.14+
-   - **Features**: RESTful `/api/predict` endpoint, CORS middleware, strict data validation via Pydantic schemas.
+Built with a decoupled architecture — a high-performance **FastAPI** backend serving a **Scikit-learn** ML pipeline, and a stunning **React/TypeScript** frontend with a unique floating pill navigation design.
 
-3. **Machine Learning (Inference Layer)**:
-   - **Stack**: Scikit-Learn, Pandas, NumPy, Joblib
-   - **Pipeline**: MinMaxScaler for feature scaling → Logistic Regression for probability calculation → Sigmoid mapping for RBI-calibrated 300-900 scores.
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---------|-------------|
+| 🎯 **99.1% Accuracy** | Logistic Regression trained on 252,000+ samples with SMOTE balancing |
+| ⚡ **<200ms Inference** | FastAPI + Pydantic validation, optimised for real-time predictions |
+| 📊 **Scenario Planner** | Interactive "what-if" sliders — simulate how changes impact credit score |
+| 🧠 **Model Intelligence** | Full transparency: algorithm specs, feature importance, performance metrics |
+| 🌗 **Dark & Light Mode** | Dual-theme toggle with persistent preference |
+| 🎨 **Unique Pill Nav** | Floating glassmorphism navigation — no sidebar, full-width content |
+| 📋 **Risk Tier System** | Auto-classifies into Elite, Standard, or Development tiers |
+| 💡 **Advisor Recommendations** | Contextual actions: Fast-Track, Standard Processing, or Credit Rebuild |
 
 ---
 
 ## 📸 Screenshots
 
-### Light Mode Dashboard
-![Light Mode](screenshots/light_mode.png)
+### 🌙 Dark Mode — Dashboard
+![Dashboard Dark](docs/screenshots/dashboard-dark.png)
 
-### Risk Assessment Wizard
-![Assessment Wizard](screenshots/assessment.png)
+### 🌙 Dark Mode — Assessment Form
+![Assessment](docs/screenshots/assessment-dark.png)
 
-### Model Intelligence
-![Model Intelligence](screenshots/model_intelligence.png)
+### 🌙 Dark Mode — Model Intelligence
+![Model Intelligence](docs/screenshots/model-dark.png)
+
+### ☀️ Light Mode — Dashboard
+![Dashboard Light](docs/screenshots/dashboard-light.png)
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   React Frontend                     │
+│   Vite + TypeScript · Floating Pill Nav · Dual Theme │
+└──────────────────────┬──────────────────────────────┘
+                       │ Axios (REST API)
+┌──────────────────────▼──────────────────────────────┐
+│                   FastAPI Backend                     │
+│   Pydantic Validation · CORS · Auto OpenAPI Docs     │
+└──────────────────────┬──────────────────────────────┘
+                       │ Joblib Model Loading
+┌──────────────────────▼──────────────────────────────┐
+│              Scikit-learn ML Pipeline                 │
+│   MinMaxScaler → Logistic Regression → Score Mapping │
+└─────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS v4 |
+| **Backend** | FastAPI, Uvicorn, Python 3.11+ |
+| **ML** | Scikit-learn, Pandas, NumPy, Joblib |
+| **Deployment** | Vercel (Frontend), Render (Backend) |
 
 ---
 
 ## 🚀 How to Run Locally
 
-To run the full-stack application, you need to start both the FastAPI backend and the React frontend.
-
 ### 1. Start the FastAPI Backend
-Ensure you have Python 3.14+ installed.
 
 ```bash
 # Clone the repository
@@ -70,34 +101,53 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 2. Start the React Frontend
-Open a **new terminal window**. Ensure you have Node.js (v18+) installed.
+
+Open a **new terminal window**:
 
 ```bash
-# Navigate to the frontend directory
 cd frontend/elitecredit-ui
 
-# Install Node modules
+# Install dependencies
 npm install
 
-# Start the Vite development server (runs on http://localhost:5173 or 5174/5175)
+# Start dev server (runs on http://localhost:5173)
 npm run dev
 ```
 
 ### 3. Access the Application
-Open your browser and navigate to the URL provided by Vite (e.g., `http://localhost:5174`). Click on the **❓ Help Button** in the top right for a guided walkthrough of the system.
+
+Open `http://localhost:5173` in your browser. Click **❓ Help** in the nav bar for a guided walkthrough.
 
 ---
 
 ## 🧠 Model Details
 
-The core intelligence is a binary classification model designed to predict loan default (`1` = Default, `0` = Paid).
-- **Algorithm**: Logistic Regression (with class weight balancing via SMOTE)
-- **Top Predictive Features**: Credit Utilization Ratio, Delinquency Ratio, Average Days Past Due.
-- **Validation Strategy**: Stratified K-Fold (k=5). No data leakage detected.
-- **Score Calibration**: Output probabilities are mapped linearly to a standard 300–900 credit scoring scale.
+| Metric | Value |
+|--------|-------|
+| Algorithm | Logistic Regression |
+| Accuracy | **99.1%** |
+| AUC-ROC | **0.9875** |
+| Training Samples | 252,000 |
+| Features | 14 (engineered) |
+| Validation | Stratified K-Fold (k=5) |
+| Score Range | 300 – 900 (RBI-calibrated) |
+| Class Balancing | SMOTE |
+
+**Top Predictive Features:** Credit Utilization Ratio, Delinquency Ratio, Average Days Past Due
 
 ---
 
 ## 👤 Author
-Developed by **Abhishek** ([just000Curious](https://github.com/just000Curious)). 
+
+**Abhishek Bhosale**
+
+[![GitHub](https://img.shields.io/badge/GitHub-just000Curious-181717?style=flat-square&logo=github)](https://github.com/just000Curious)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abhishek_Bhosale-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/abhishek-sambhaji-bhosale/)
+
 Built as a demonstration of productionizing machine learning models into full-stack, enterprise-ready web applications.
+
+---
+
+<div align="center">
+<sub>Built with ❤️ using FastAPI + React + Scikit-learn</sub>
+</div>
