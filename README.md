@@ -6,8 +6,8 @@
 
 **Real-time credit scoring engine powered by Machine Learning**
 
-[![Live System](https://img.shields.io/badge/Status-Live-10B981?style=for-the-badge&logo=vercel)](https://elitecredit.vercel.app)
-[![Accuracy](https://img.shields.io/badge/Accuracy-99.1%25-38BDF8?style=for-the-badge)](/)
+[![Live System](https://img.shields.io/badge/Status-Live-22977A?style=for-the-badge&logo=vercel)](https://elitecredit.vercel.app)
+[![Accuracy](https://img.shields.io/badge/Accuracy-99.1%25-CF783E?style=for-the-badge)](/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](/)
 [![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](/)
 
@@ -15,51 +15,50 @@
 
 ---
 
-## 🎯 What is EliteCredit?
+## What is EliteCredit?
 
 EliteCredit is a **production-grade, full-stack machine learning platform** for credit risk assessment. It replaces manual underwriting with a real-time scoring engine that predicts default probabilities and generates **RBI-calibrated credit scores (300–900)** with **99.1% accuracy**.
 
-Built with a decoupled architecture — a high-performance **FastAPI** backend serving a **Scikit-learn** ML pipeline, and a stunning **React/TypeScript** frontend with a unique floating pill navigation design.
+Built with a decoupled architecture — a high-performance **FastAPI** backend serving a **Scikit-learn** ML pipeline, and a **React/TypeScript** frontend with DM Sans typography, Lucide icons, and a warm financial design system.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 🎯 **99.1% Accuracy** | Logistic Regression trained on 252,000+ samples with SMOTE balancing |
-| ⚡ **<200ms Inference** | FastAPI + Pydantic validation, optimised for real-time predictions |
-| 📊 **Scenario Planner** | Interactive "what-if" sliders — simulate how changes impact credit score |
-| 🧠 **Model Intelligence** | Full transparency: algorithm specs, feature importance, performance metrics |
-| 🌗 **Dark & Light Mode** | Dual-theme toggle with persistent preference |
-| 🎨 **Unique Pill Nav** | Floating glassmorphism navigation — no sidebar, full-width content |
-| 📋 **Risk Tier System** | Auto-classifies into Elite, Standard, or Development tiers |
-| 💡 **Advisor Recommendations** | Contextual actions: Fast-Track, Standard Processing, or Credit Rebuild |
+| **99.1% Accuracy** | Logistic Regression trained on 252,000+ samples with SMOTE balancing |
+| **<200ms Inference** | FastAPI + Pydantic validation, optimised for real-time predictions |
+| **Scenario Planner** | Interactive sliders — simulate how changes impact credit score |
+| **Model Intelligence** | Full transparency: algorithm specs, feature importance, performance metrics |
+| **Dark & Light Mode** | Dual-theme toggle with persistent preference |
+| **Risk Tier System** | Auto-classifies into Elite, Standard, or Development tiers |
+| **Advisor Recommendations** | Contextual actions: Fast-Track, Standard Processing, or Credit Rebuild |
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
-### 🌙 Dark Mode — Dashboard
+### Dark Mode — Dashboard
 ![Dashboard Dark](docs/screenshots/dashboard-dark.png)
 
-### 🌙 Dark Mode — Assessment Form
+### Dark Mode — Assessment Form
 ![Assessment](docs/screenshots/assessment-dark.png)
 
-### 🌙 Dark Mode — Model Intelligence
+### Dark Mode — Model Intelligence
 ![Model Intelligence](docs/screenshots/model-dark.png)
 
-### ☀️ Light Mode — Dashboard
+### Light Mode — Dashboard
 ![Dashboard Light](docs/screenshots/dashboard-light.png)
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   React Frontend                     │
-│   Vite + TypeScript · Floating Pill Nav · Dual Theme │
+│     Vite + TypeScript · DM Sans · Lucide Icons       │
 └──────────────────────┬──────────────────────────────┘
                        │ Axios (REST API)
 ┌──────────────────────▼──────────────────────────────┐
@@ -77,14 +76,14 @@ Built with a decoupled architecture — a high-performance **FastAPI** backend s
 
 | Layer | Technologies |
 |-------|-------------|
-| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS v4 |
+| **Frontend** | React 19, Vite, TypeScript, Lucide React, DM Sans + DM Mono |
 | **Backend** | FastAPI, Uvicorn, Python 3.11+ |
 | **ML** | Scikit-learn, Pandas, NumPy, Joblib |
 | **Deployment** | Vercel (Frontend), Render (Backend) |
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 ### 1. Start the FastAPI Backend
 
@@ -116,11 +115,11 @@ npm run dev
 
 ### 3. Access the Application
 
-Open `http://localhost:5173` in your browser. Click **❓ Help** in the nav bar for a guided walkthrough.
+Open `http://localhost:5173` in your browser. Click the **?** icon in the nav bar for a guided walkthrough.
 
 ---
 
-## 🧠 Model Details
+## Model Details
 
 | Metric | Value |
 |--------|-------|
@@ -137,7 +136,7 @@ Open `http://localhost:5173` in your browser. Click **❓ Help** in the nav bar 
 
 ---
 
-## 👤 Author
+## Author
 
 **Abhishek Bhosale**
 
@@ -149,5 +148,5 @@ Built as a demonstration of productionizing machine learning models into full-st
 ---
 
 <div align="center">
-<sub>Built with ❤️ using FastAPI + React + Scikit-learn</sub>
+<sub>Built with FastAPI + React + Scikit-learn</sub>
 </div>
