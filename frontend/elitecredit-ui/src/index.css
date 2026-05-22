@@ -83,7 +83,7 @@ h1, h2, h3, .heading { font-family: 'DM Sans', system-ui, sans-serif; }
 
 /* ── Main ─────────────────────────────────────────────────────────────── */
 .main-content { min-height: 100vh; padding-top: 56px; }
-.page-content { max-width: 1100px; margin: 0 auto; padding: 24px 28px; }
+.page-content { max-width: 1440px; margin: 0 auto; padding: 32px 48px; }
 
 /* ── Chips ─────────────────────────────────────────────────────────────── */
 .chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; }
@@ -189,7 +189,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14p
 .score-number { font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-family: 'DM Mono', monospace; }
 
 /* ── Footer ────────────────────────────────────────────────────────────── */
-.site-footer { max-width: 1100px; margin: 40px auto 0; padding: 16px 28px 28px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.site-footer { max-width: 1440px; margin: 40px auto 0; padding: 16px 48px 28px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .footer-left { font-size: 12px; color: var(--t3); display: flex; align-items: center; gap: 8px; }
 .footer-left strong { color: var(--t1); font-weight: 600; }
 .footer-links { display: flex; gap: 6px; }
