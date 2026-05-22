@@ -5,7 +5,7 @@ import {
   BarChart3, TrendingDown, ArrowLeft, ArrowRight,
   CheckCircle2, ShieldCheck, AlertTriangle,
   Lightbulb, Rocket, FileCheck, FolderOpen,
-  OctagonX, TrendingUp,
+  OctagonX,
 } from 'lucide-react';
 
 export interface Result {
