@@ -1,0 +1,24 @@
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Git
+.git
+.gitignore
+
+# Node (frontend lives outside the container)
+node_modules
+
+# Large data files & notebooks
+dataset
+*.ipynb
+
+# Docs and screenshots (not needed at runtime)
+docs
+screenshots
+
+# IDE
+.idea
+.vscode

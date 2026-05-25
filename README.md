@@ -79,7 +79,7 @@ Built with a decoupled architecture — a high-performance **FastAPI** backend s
 | **Frontend** | React 19, Vite, TypeScript, Lucide React, DM Sans + DM Mono |
 | **Backend** | FastAPI, Uvicorn, Python 3.11+ |
 | **ML** | Scikit-learn, Pandas, NumPy, Joblib |
-| **Deployment** | Vercel (Frontend), Render (Backend) |
+| **Deployment** | Vercel (Frontend), Render (Backend), Docker |
 
 ---
 
@@ -116,6 +116,48 @@ npm run dev
 ### 3. Access the Application
 
 Open `http://localhost:5173` in your browser. Click the **?** icon in the nav bar for a guided walkthrough.
+
+---
+
+## Docker Deployment
+
+The backend API is fully containerised and can be run anywhere Docker is available.
+
+### Build & Run
+
+```bash
+# Build the Docker image
+docker build -t elitecredit-api .
+
+# Run the container (maps container port 8000 → host port 8000)
+docker run -p 8000:8000 elitecredit-api
+```
+
+The API will be available at `http://localhost:8000`.  
+Interactive API docs (Swagger UI) are at `http://localhost:8000/docs`.
+
+### Docker + React (Full Stack)
+
+```bash
+# Start the FastAPI backend in Docker
+docker run -d -p 8000:8000 --name elitecredit-api elitecredit-api
+
+# In a separate terminal, start the React frontend
+cd frontend/elitecredit-ui
+npm install && npm run dev
+```
+
+> **Tip:** Add a `.dockerignore` file to keep the image lean:
+> ```
+> __pycache__
+> *.pyc
+> .git
+> node_modules
+> dataset
+> docs
+> screenshots
+> *.ipynb
+> ```
 
 ---
 
