@@ -22,8 +22,18 @@ const sc   = (s: number) => s >= 750 ? 'var(--emerald)' : s >= 650 ? 'var(--ambe
 const chip = (s: number) => s >= 750 ? 'chip-emerald' : s >= 650 ? 'chip-amber' : 'chip-red';
 const tier = (s: number) => s >= 750 ? 'Elite — Tier 1' : s >= 650 ? 'Standard — Tier 2' : 'Development — Tier 3';
 
-/* ── Field ─────────────────────────────────────────────────────────────── */
-function Field({ label, name, type = 'number', value, onChange, options }: any) {
+/* ── Field ────────────────────────────────────────────────────────────────── */
+interface FieldProps {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  options?: string[];
+  min?: number;
+  max?: number;
+}
+function Field({ label, name, type = 'number', value, onChange, options, min, max }: FieldProps) {
   return (
     <div>
       <label className="input-label">{label}</label>
@@ -32,17 +42,18 @@ function Field({ label, name, type = 'number', value, onChange, options }: any) 
           {options.map((o: string) => <option key={o}>{o}</option>)}
         </select>
       ) : (
-        <input type={type} name={name} value={value} onChange={onChange} className="input-field" />
+        <input type={type} name={name} value={value} onChange={onChange} className="input-field" min={min} max={max} />
       )}
     </div>
   );
 }
 
-/* ── Score Ring ────────────────────────────────────────────────────────── */
+/* ── Score Ring ────────────────────────────────────────────────────────────── */
 function ScoreRing({ score }: { score: number }) {
   const R = 70;
   const circ = 2 * Math.PI * R;
-  const pct = (score - 300) / 600;
+  // Clamp pct to [0,1] to prevent SVG rendering artifacts at score edges
+  const pct = Math.min(Math.max((score - 300) / 600, 0), 1);
   const offset = circ - pct * circ;
   const color = sc(score);
   return (
@@ -60,13 +71,16 @@ function ScoreRing({ score }: { score: number }) {
       <div className="score-ring-inner">
         <div style={{ fontSize:10,color:'var(--t3)',fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:2 }}>Score</div>
         <div className="score-number" style={{ color }}>{score}</div>
-        <span className={`chip ${chip(score)}`} style={{ fontSize:10,marginTop:4 }}>{score >= 750 ? 'Elite' : score >= 650 ? 'Standard' : 'Review'}</span>
+        {/* Use the consistent rating label from the API response via tier() */}
+        <span className={`chip ${chip(score)}`} style={{ fontSize:10,marginTop:4 }}>
+          {score >= 750 ? 'Excellent' : score >= 650 ? 'Good' : score >= 500 ? 'Average' : 'Poor'}
+        </span>
       </div>
     </div>
   );
 }
 
-/* ── Stepper ────────────────────────────────────────────────────────────── */
+/* ── Stepper ──────────────────────────────────────────────────────────────────── */
 function Stepper({ step }: { step: number }) {
   const steps = ['Personal', 'Financial', 'Credit', 'Analyze'];
   return (
@@ -87,31 +101,76 @@ function Stepper({ step }: { step: number }) {
 }
 
 /* ── Assessment Page ───────────────────────────────────────────────────── */
-export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => void }) {
+// Typed form shape — all values are strings so controlled inputs stay editable
+export interface FormState {
+  age: string;
+  annual_income: string;
+  loan_amount: string;
+  loan_tenure_months: string;
+  avg_dpd_per_delinquency: string;
+  delinquency_ratio: string;
+  credit_utilization_ratio: string;
+  num_open_accounts: string;
+  residence_type: string;
+  loan_purpose: string;
+  loan_type: string;
+}
+
+export function AssessmentPage({ onResult }: { onResult: (r: Result, f: FormState) => void }) {
+  // Store all values as strings so controlled inputs never get locked at 0.
+  // Numbers are parsed into the payload only at submit time.
   const [form, setForm] = useState({
-    age: 32, annual_income: 1200000, loan_amount: 3500000,
-    loan_tenure_months: 36, avg_dpd_per_delinquency: 5,
-    delinquency_ratio: 10, credit_utilization_ratio: 30,
-    num_open_accounts: 3, residence_type: 'Owned',
-    loan_purpose: 'Home', loan_type: 'Secured',
+    age:                     '32',
+    annual_income:           '1200000',
+    loan_amount:             '3500000',
+    loan_tenure_months:      '36',
+    avg_dpd_per_delinquency: '5',
+    delinquency_ratio:       '10',
+    credit_utilization_ratio:'30',
+    num_open_accounts:       '3',
+    residence_type:          'Owned',
+    loan_purpose:            'Home',
+    loan_type:               'Secured',
   });
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
-  const handle = (e: any) => {
+  // Store raw string — never call Number() here, that's what caused the "stuck at 0" bug
+  const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(p => ({ ...p, [name]: ['residence_type','loan_purpose','loan_type'].includes(name) ? value : Number(value) }));
+    setForm(p => ({ ...p, [name]: value }));
   };
 
-  const submit = async (e: any) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); setError('');
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const { data } = await axios.post(`${API_URL}/api/predict`, form);
+      // Build numeric payload here — form state is strings for clean editing
+      const payload = {
+        age:                     parseInt(form.age,              10) || 0,
+        annual_income:           parseFloat(form.annual_income)      || 0,
+        loan_amount:             parseFloat(form.loan_amount)        || 0,
+        loan_tenure_months:      parseInt(form.loan_tenure_months, 10) || 1,
+        avg_dpd_per_delinquency: parseFloat(form.avg_dpd_per_delinquency) || 0,
+        delinquency_ratio:       parseFloat(form.delinquency_ratio)  || 0,
+        credit_utilization_ratio:parseFloat(form.credit_utilization_ratio) || 0,
+        num_open_accounts:       parseInt(form.num_open_accounts, 10) || 0,
+        residence_type:          form.residence_type,
+        loan_purpose:            form.loan_purpose,
+        loan_type:               form.loan_type,
+      };
+      const { data } = await axios.post(`${API_URL}/api/predict`, payload);
+      setStep(4);
       onResult(data, form);
     } catch {
-      setError('Cannot reach the API. Ensure FastAPI is running on port 8000.');
+      const isDev = import.meta.env.DEV;
+      setError(
+        isDev
+          ? 'Cannot reach the API. Ensure FastAPI is running: uvicorn api.main:app --reload'
+          : 'The scoring service is temporarily unavailable. Please try again in a moment.'
+      );
     } finally { setLoading(false); }
   };
 
@@ -119,7 +178,7 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
     <div className="animate-in">
       <p className="section-title">Credit Risk Assessment</p>
       <p className="section-sub">Complete the applicant profile to generate a risk analysis.</p>
-      <Stepper step={3} />
+      <Stepper step={step} />
 
       {error && (
         <div style={{ padding:'9px 12px',background:'var(--red-dim)',border:'1px solid rgba(229,72,77,0.2)',borderRadius:4,color:'var(--red)',fontSize:12.5,marginBottom:16,display:'flex',alignItems:'center',gap:6 }}>
@@ -133,18 +192,18 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
           <div className="card card-glow">
             <div className="card-header"><span className="card-header-icon icon-teal"><User size={11} /></span> Personal</div>
             <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
-              <Field label="Age" name="age" value={form.age} onChange={handle} />
+              <Field label="Age" name="age" value={form.age} onChange={handle} min={18} max={100} />
               <Field label="Residence" name="residence_type" value={form.residence_type} onChange={handle} options={['Owned','Rented']} />
-              <Field label="Open Accounts" name="num_open_accounts" value={form.num_open_accounts} onChange={handle} />
+              <Field label="Open Accounts" name="num_open_accounts" value={form.num_open_accounts} onChange={handle} min={0} max={50} />
             </div>
           </div>
           {/* Financial */}
           <div className="card card-glow">
             <div className="card-header"><span className="card-header-icon icon-emerald"><IndianRupee size={11} /></span> Financial</div>
             <div style={{ display:'flex',flexDirection:'column',gap:12 }}>
-              <Field label="Annual Income (₹)" name="annual_income" value={form.annual_income} onChange={handle} />
-              <Field label="Loan Amount (₹)" name="loan_amount" value={form.loan_amount} onChange={handle} />
-              <Field label="Tenure (Months)" name="loan_tenure_months" value={form.loan_tenure_months} onChange={handle} />
+              <Field label="Annual Income (₹)" name="annual_income" value={form.annual_income} onChange={handle} min={1} />
+              <Field label="Loan Amount (₹)" name="loan_amount" value={form.loan_amount} onChange={handle} min={1} />
+              <Field label="Tenure (Months)" name="loan_tenure_months" value={form.loan_tenure_months} onChange={handle} min={1} max={360} />
             </div>
           </div>
         </div>
@@ -153,9 +212,9 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
         <div className="card card-glow" style={{ marginBottom:14 }}>
           <div className="card-header"><span className="card-header-icon icon-amber"><Clock size={11} /></span> Credit History</div>
           <div className="grid-3">
-            <Field label="Utilization (%)" name="credit_utilization_ratio" value={form.credit_utilization_ratio} onChange={handle} />
-            <Field label="Delinquency (%)" name="delinquency_ratio" value={form.delinquency_ratio} onChange={handle} />
-            <Field label="Avg Days Past Due" name="avg_dpd_per_delinquency" value={form.avg_dpd_per_delinquency} onChange={handle} />
+            <Field label="Utilization (%)" name="credit_utilization_ratio" value={form.credit_utilization_ratio} onChange={handle} min={0} max={100} />
+            <Field label="Delinquency (%)" name="delinquency_ratio" value={form.delinquency_ratio} onChange={handle} min={0} max={100} />
+            <Field label="Avg Days Past Due" name="avg_dpd_per_delinquency" value={form.avg_dpd_per_delinquency} onChange={handle} min={0} />
           </div>
         </div>
 
@@ -163,7 +222,8 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
         <div className="card card-glow" style={{ marginBottom:18 }}>
           <div className="card-header"><span className="card-header-icon icon-cyan"><FileText size={11} /></span> Loan Details</div>
           <div className="grid-2">
-            <Field label="Purpose" name="loan_purpose" value={form.loan_purpose} onChange={handle} options={['Home','Personal','Education','Auto']} />
+            {/* 'Auto' is intentionally excluded: the ML model only encodes Education, Home, Personal */}
+            <Field label="Purpose" name="loan_purpose" value={form.loan_purpose} onChange={handle} options={['Home','Personal','Education']} />
             <Field label="Type" name="loan_type" value={form.loan_type} onChange={handle} options={['Secured','Unsecured']} />
           </div>
         </div>
@@ -172,11 +232,10 @@ export function AssessmentPage({ onResult }: { onResult: (r: Result, f: any) => 
           {loading ? (
             <>
               <span style={{ display:'inline-block',width:13,height:13,border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'white',borderRadius:'50%',animation:'spin 0.7s linear infinite' }} />
-              Analysing...
+              Analyzing...
             </>
           ) : <><ArrowRight size={14} /> Run Risk Analysis</>}
         </button>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </form>
     </div>
   );
@@ -219,7 +278,8 @@ export function ResultsPage({ result, onBack }: { result: Result; onBack: () => 
           <div style={{ marginTop:10,width:'100%' }}>
             <div style={{ display:'flex',justifyContent:'space-between',fontSize:9.5,color:'var(--t3)',marginBottom:2 }}><span>300</span><span>900</span></div>
             <div className="progress-track">
-              <div className="progress-fill" style={{ width:`${((result.credit_score-300)/600)*100}%`,background:sc(result.credit_score) }} />
+              {/* Clamp fill to [0%,100%] to prevent overflow at edge scores */}
+              <div className="progress-fill" style={{ width:`${Math.min(Math.max(((result.credit_score-300)/600)*100, 0), 100)}%`,background:sc(result.credit_score) }} />
             </div>
           </div>
         </div>

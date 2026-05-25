@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AssessmentPage, ResultsPage } from './pages';
-import type { Result } from './pages';
+import type { Result, FormState } from './pages';
 import {
   LayoutDashboard, ClipboardCheck, BarChart3, Brain,
   HelpCircle,
@@ -13,13 +13,20 @@ const GitHubIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="c
 const LinkedInIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>;
 
 function HelpModal({ onClose }: { onClose: () => void }) {
+  // Fix P2: close on ESC key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   return (
     <div style={{ position:'fixed',inset:0,zIndex:200,display:'flex',alignItems:'center',justifyContent:'center' }}>
       <div style={{ position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)' }} onClick={onClose} />
       <div style={{ position:'relative',background:'var(--bg-card)',border:'1px solid var(--border)',borderRadius:6,padding:'24px 28px',maxWidth:500,width:'90%',maxHeight:'80vh',overflowY:'auto',boxShadow:'var(--shadow-lg)' }} className="animate-in">
         <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18 }}>
           <h2 className="heading" style={{ fontSize:15,fontWeight:600,color:'var(--t1)',margin:0 }}>How to Use EliteCredit</h2>
-          <button onClick={onClose} style={{ background:'var(--bg-raised)',border:'1px solid var(--border)',borderRadius:4,padding:'3px 8px',cursor:'pointer',color:'var(--t2)',fontSize:13,fontFamily:'inherit' }}>✕</button>
+          <button onClick={onClose} aria-label="Close help" style={{ background:'var(--bg-raised)',border:'1px solid var(--border)',borderRadius:4,padding:'3px 8px',cursor:'pointer',color:'var(--t2)',fontSize:13,fontFamily:'inherit' }}>✕</button>
         </div>
         {[
           { step:'1', title:'New Assessment', desc:'Click "Assessment" in the nav. Fill in the applicant details.' },
@@ -65,10 +72,10 @@ function DashboardPage({ onGo }: { onGo: () => void }) {
 
       <div className="grid-4 animate-in animate-delay-1" style={{ marginBottom:16 }}>
         {[
-          { icon: Target, value:'99.1%',  label:'Model Accuracy',   chip:'chip-emerald', ct:'Validated' },
-          { icon: Zap, value:'<200ms', label:'Inference Latency', chip:'chip-cyan',    ct:'FastAPI' },
+          { icon: Target,   value:'99.1%',  label:'Model Accuracy',   chip:'chip-emerald', ct:'Validated' },
+          { icon: Zap,      value:'<200ms', label:'Inference Latency', chip:'chip-cyan',    ct:'FastAPI' },
           { icon: Database, value:'252K',   label:'Training Samples',  chip:'chip-amber',   ct:'SMOTE' },
-          { icon: Hash, value:'14',     label:'Risk Features',     chip:'chip-violet',  ct:'Engineered' },
+          { icon: Hash,     value:'14',     label:'Risk Features',     chip:'chip-violet',  ct:'Engineered' },
         ].map(k => (
           <div key={k.label} className="card" style={{ padding:'16px' }}>
             <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10 }}>
@@ -98,17 +105,19 @@ function DashboardPage({ onGo }: { onGo: () => void }) {
         <div className="card">
           <div className="card-header"><span className="card-header-icon icon-emerald"><Activity size={11} /></span> Model Performance</div>
           {[
-            { label:'Accuracy', val:99.1, color:'var(--emerald)' },
-            { label:'AUC-ROC', val:98.75, color:'var(--accent)' },
-            { label:'Precision', val:97.4, color:'var(--amber)' },
-            { label:'Recall', val:95.8, color:'var(--violet)' },
+            { label:'Accuracy',  val:99.1,  pct:99.1,  color:'var(--emerald)' },
+            { label:'AUC-ROC',  val:0.9875, pct:98.75, color:'var(--accent)' },
+            { label:'Precision', val:97.4,  pct:97.4,  color:'var(--amber)' },
+            { label:'Recall',    val:95.8,  pct:95.8,  color:'var(--violet)' },
           ].map(m => (
             <div key={m.label} style={{ marginBottom:12 }}>
               <div style={{ display:'flex',justifyContent:'space-between',marginBottom:3 }}>
                 <span style={{ fontSize:12,color:'var(--t3)' }}>{m.label}</span>
-                <span style={{ fontSize:12,fontWeight:600,color:m.color,fontFamily:'DM Mono, monospace' }}>{m.val}%</span>
+                <span style={{ fontSize:12,fontWeight:600,color:m.color,fontFamily:'DM Mono, monospace' }}>
+                  {m.label === 'AUC-ROC' ? m.val.toFixed(4) : `${m.val}%`}
+                </span>
               </div>
-              <div className="progress-track"><div className="progress-fill" style={{ width:`${m.val}%`,background:m.color }} /></div>
+              <div className="progress-track"><div className="progress-fill" style={{ width:`${m.pct}%`,background:m.color }} /></div>
             </div>
           ))}
           <div style={{ marginTop:6,padding:'8px 10px',background:'var(--emerald-dim)',borderRadius:4,border:'1px solid rgba(34,151,122,0.15)',fontSize:11.5 }}>
@@ -143,11 +152,16 @@ function ModelPage() {
   );
 }
 
-function ScenarioPage({ result, form }: { result: Result|null; form: any }) {
+function ScenarioPage({ result, form }: { result: Result|null; form: FormState|null }) {
   const [ut,setUt]=useState(25); const [ib,setIb]=useState(0);
   if (!result) return <div className="card animate-in" style={{textAlign:'center',padding:'50px 20px'}}><BarChart3 size={32} style={{color:'var(--t3)',marginBottom:12}} /><div className="heading" style={{fontSize:15,fontWeight:600,marginBottom:4}}>No Assessment Data</div><div style={{fontSize:13,color:'var(--t3)'}}>Run a credit risk assessment first.</div></div>;
-  const cur=result.credit_score; const udiff=Math.max((form?.credit_utilization_ratio??30)-ut,0); const d=Math.min(udiff*1.1,60)+Math.min(ib*0.75,35); const pot=Math.min(cur+Math.round(d),900);
-  const cs=(s:number)=>s>=750?'var(--emerald)':s>=650?'var(--amber)':'var(--red)';
+  const cur=result.credit_score;
+  const udiff = Math.max((form?.credit_utilization_ratio ?? 30) - ut, 0);
+  const d = Math.min(udiff * 1.1, 60) + Math.min(ib * 0.75, 35);
+  const pot = Math.min(cur + Math.round(d), 900);
+  // delta is always >= 0 since pot >= cur (sliders only improve score)
+  const delta = pot - cur;
+  const cs = (s: number) => s >= 750 ? 'var(--emerald)' : s >= 650 ? 'var(--amber)' : 'var(--red)';
   return (
     <div className="animate-in">
       <p className="section-title">Scenario Planner</p><p className="section-sub">Simulate how changes could improve the client's credit profile.</p>
@@ -173,11 +187,11 @@ function ScenarioPage({ result, form }: { result: Result|null; form: any }) {
             <div style={{textAlign:'center',padding:'14px',background:'var(--accent-dim)',borderRadius:4,border:'1px solid rgba(207,120,62,0.12)'}}>
               <div style={{fontSize:10,color:'var(--t3)',fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:4}}>Potential</div>
               <div style={{fontSize:32,fontWeight:700,color:cs(pot),fontFamily:'DM Mono, monospace'}}>{pot}</div>
-              <div style={{fontSize:12,color:'var(--emerald-light)',fontWeight:600,marginTop:2}}>+{pot-cur} pts</div>
+              <div style={{fontSize:12,color:'var(--emerald-light)',fontWeight:600,marginTop:2}}>+{delta} pts</div>
             </div>
           </div>
           <div style={{padding:'8px 10px',background:'var(--accent-dim)',borderRadius:4,border:'1px solid rgba(207,120,62,0.1)',fontSize:12,color:'var(--t2)',lineHeight:1.6}}>
-            Reducing utilization from <strong>{form?.credit_utilization_ratio}%</strong> → <strong>{ut}%</strong>{ib>0&&<> + <strong>+{ib}%</strong> income</>} could yield <strong style={{color:'var(--emerald-light)'}}>+{pot-cur} pts</strong>.
+            Reducing utilization from <strong>{form?.credit_utilization_ratio}%</strong> → <strong>{ut}%</strong>{ib>0&&<> + <strong>+{ib}%</strong> income</>} could yield <strong style={{color:'var(--emerald-light)'}}>+{delta} pts</strong>.
           </div>
         </div>
       </div>
@@ -186,17 +200,21 @@ function ScenarioPage({ result, form }: { result: Result|null; form: any }) {
 }
 
 export default function App() {
-  const [tab,setTab]=useState('dashboard'); const [result,setResult]=useState<Result|null>(null); const [form,setForm]=useState<any>(null);
-  const [theme,setTheme]=useState<'dark'|'light'>(()=>(localStorage.getItem('ec-theme') as any)||'dark');
+  const [tab,setTab]    = useState('dashboard');
+  const [result,setResult] = useState<Result|null>(null);
+  const [form,setForm]   = useState<FormState|null>(null);
+  const [theme,setTheme] = useState<'dark'|'light'>(
+    () => (localStorage.getItem('ec-theme') as 'dark'|'light') || 'dark'
+  );
   const [showHelp,setShowHelp]=useState(false);
   useEffect(()=>{document.documentElement.setAttribute('data-theme',theme);localStorage.setItem('ec-theme',theme)},[theme]);
-  const handleResult=(r:Result,f:any)=>{setResult(r);setForm(f);setTab('results')};
+  const handleResult = (r: Result, f: FormState) => { setResult(r); setForm(f); setTab('results'); };
   const tabs: {id:string;icon:React.ElementType;label:string}[] = [
-    {id:'dashboard',icon:LayoutDashboard,label:'Dashboard'},
-    {id:'assessment',icon:ClipboardCheck,label:'Assessment'},
-    ...(result?[{id:'results',icon:CheckCircle2,label:'Results'}]:[]),
-    {id:'scenario',icon:BarChart3,label:'Scenarios'},
-    {id:'model',icon:Brain,label:'Model'},
+    {id:'dashboard', icon:LayoutDashboard, label:'Dashboard'},
+    {id:'assessment', icon:ClipboardCheck,  label:'Assessment'},
+    ...(result ? [{id:'results',  icon:CheckCircle2, label:'Results'}]  : []),
+    ...(result ? [{id:'scenario', icon:BarChart3,    label:'Scenarios'}] : []),
+    {id:'model', icon:Brain, label:'Model'},
   ];
 
   return (
@@ -208,7 +226,12 @@ export default function App() {
           <button onClick={()=>setShowHelp(true)} className="pill-link" title="Help"><HelpCircle size={13} /></button>
           <a className="pill-link" href="https://github.com/just000Curious" target="_blank" rel="noreferrer" title="GitHub"><GitHubIcon /></a>
           <a className="pill-link" href="https://www.linkedin.com/in/abhishek-sambhaji-bhosale/" target="_blank" rel="noreferrer" title="LinkedIn"><LinkedInIcon /></a>
-          <button className="pill-theme" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title={`Switch to ${theme==='dark'?'light':'dark'} mode`} />
+          <button
+            className="pill-theme"
+            onClick={() => setTheme(t => t==='dark'?'light':'dark')}
+            aria-label={`Switch to ${theme==='dark'?'light':'dark'} mode`}
+            title={`Switch to ${theme==='dark'?'light':'dark'} mode`}
+          />
         </div>
       </nav>
 
