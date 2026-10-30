@@ -161,6 +161,19 @@ npm install && npm run dev
 
 ---
 
+## Experiments and Results
+
+Final Model: tuned Logistic Regression (C=9.3734, solver=saga, tol=0.0178)
+
+| Model | Recall | Precision | F1 | ROC-AUC |
+|---|---|---|---|---|
+| baseline Logistic Regression | 0.7216014897579144 | 0.8469945355191257 | 0.7792860734037205 | 0.9837945789074968 |
+| Random Forest | 0.7141527001862198 | 0.855072463768116 | 0.778285134449518 | 0.9856496440990774 |
+| XGBoost (tuned) | 0.8621973929236499 | 0.7068702290076336 | 0.7768456375838926 | 0.985801539609964 |
+| tuned Logistic Regression (C=9.3734, solver=saga, tol=0.0178) | 0.9404096834264432 | 0.5651930609960828 | 0.7060468367703601 | 0.9836544617176852 |
+
+---
+
 ## Model Details
 
 | Metric | Value |
